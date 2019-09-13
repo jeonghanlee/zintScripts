@@ -31,8 +31,8 @@ declare -gr SC_TOP="$(dirname "$SC_SCRIPT")"
 
 for DATA in `seq 11935 11963`;
 do
-    create_label_image "$DATA"
-    lpr_label "$DATA"
+    create_dmlabel_image "$DATA"
+    lpr_dmlabel "$DATA"
     sleep 8
 done
 
