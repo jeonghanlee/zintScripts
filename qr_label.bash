@@ -17,7 +17,7 @@
 #
 # Author  : Jeong Han Lee
 # email   : jeonghan.lee@gmail.com
-# Date    : Thursday, September 12 03:42:38 CDT 2019 
+# Date    : Friday, September 13 09:48:46 CEST 2019
 # version : 0.0.1
 #
 
@@ -80,9 +80,9 @@ if [ -z "$DATA" ]; then
 fi
 
 
-create_dmlabel_image "$DATA"
+create_qrlabel_image "$DATA"
 if [ "$PRINT" == "YES" ]; then
-    lpr_dmlabel "$DATA"
+    lpr_qrlabel "$DATA"
 fi
 
 
