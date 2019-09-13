@@ -56,9 +56,44 @@ function create_label_image
     zint -o ${rawoutput_filename} --height=48 -w 6 --border=0 --vers=26  -b ${DM} -d ${data}
     # Add ${data} on the bottom of the label
     convert ${rawoutput_filename}  -gravity South -background white -splice 0x14 -annotate +0-2 "${data}" -font "Monospace Regular" -density 360 +antialias ${output_filename}
+    rm -f ${rawoutput_filename}
     printf "Label %s is created in ${SC_TOP}\n" "${output_filename}"
     popd
 }
+
+
+function create_qrlabel_image
+{
+    
+    local data=$1; shift;
+   
+    local output_filename="${data}.${FILETYPE}";
+    local rawoutput_filename=".${output_filename}";
+    
+    pushd ${SC_TOP}
+  # #    qr_symbol -> height           = 48;
+  # # qr_symbol -> whitespace_width = 6;
+  # # qr_symbol -> border_width     = 2;
+  # # qr_symbol -> input_mode       = DATA_MODE;
+  #   # qr_symbol -> option_1         = 3;            /* ECC Level L1/M2/Q3/H4 */
+
+  #    num_options = cupsAddOption("PageSize",              "w72h72.1", num_options, &options);
+  #     num_options = cupsAddOption("scaling",               "100",      num_options, &options);
+  #     num_options = cupsAddOption("orientation-requested", "3",        num_options, &options);
+  #     num_options = cupsAddOption("DymoHalftoning",        "Default",  num_options, &options);
+  #     job_id = cupsPrintFile(label_printer_name, qr_file.c_str(), "print qr code", num_options, options);
+
+      
+    
+    # Create the label directly from Zint
+    zint -o ${rawoutput_filename} --height=48 -w 6 --border=2 --secure=3  -b ${QR} -d ${data}
+    # Add ${data} on the bottom of the label
+    convert ${rawoutput_filename}  -gravity South -background white -splice 0x14 -annotate +0-2 "${data}" -font "Monospace Regular" -density 360 +antialias ${output_filename}
+    rm -f ${rawoutput_filename}
+    printf "Label %s is created in ${SC_TOP}\n" "${output_filename}"
+    popd
+}
+
 
 # cups-bsd
 # This lpr isn't the BSD original one, but cups-bsd one
