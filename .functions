@@ -17,12 +17,14 @@
 #
 # Author  : Jeong Han Lee
 # email   : jeonghan.lee@gmail.com
-# Date    : Thursday, September 12 03:42:38 CDT 2019 
-# version : 0.0.1
+# Date    : Friday, September 13 03:53:37 CDT 2019
+# version : 0.0.2
 #
 
 DM_PRINTER="LabelWriter-450-DUO-Tape"
 QR_PRINTER="LabelWriter-450-DUO-Label"
+
+
 
 FILETYPE="png"
 QR="58"
@@ -50,8 +52,8 @@ function create_dmlabel_image
     
     local data=$1; shift;
    
-    local output_filename="${data}.${FILETYPE}";
-    local rawoutput_filename=".${output_filename}";
+    local output_filename="DM${data}.${FILETYPE}";
+    local rawoutput_filename=".${DM}_${output_filename}";
     
     pushd ${SC_TOP}
     # Create the label directly from Zint
@@ -70,14 +72,14 @@ function create_qrlabel_image
     
     local data=$1; shift;
    
-    local output_filename="${data}.${FILETYPE}";
-    local rawoutput_filename=".${output_filename}";
+    local output_filename="QR${data}.${FILETYPE}";
+    local rawoutput_filename=".${QR}_${output_filename}";
     
     pushd ${SC_TOP}
     # Create the label directly from Zint
-    zint -o ${rawoutput_filename} --height=48 -w 6 --border=2 --secure=3  -b ${QR} -d ${data}
+    zint -o ${rawoutput_filename} --height=48 -w 8 --border=0 --secure=3  -b ${QR} -d ${data}
     # Add ${data} on the bottom of the label
-    convert ${rawoutput_filename}  -gravity South -background white -splice 0x16 -annotate +0-2 "${data}" -font "Monospace Regular" -density 360 +antialias ${output_filename}
+    convert ${rawoutput_filename}  -gravity South -background white -splice 0x16 -annotate +0-3 "${data}" +antialias -density 720 ${output_filename}
     rm -f ${rawoutput_filename}
     printf "Label %s : %s is created in ${SC_TOP}\n" "${QR}" "${output_filename}"
     popd
@@ -90,19 +92,22 @@ function create_qrlabel_image
 function lpr_dmlabel
 {
     local data=$1; shift;
-    local output_filename="${data}.${FILETYPE}";
+    local output_filename="DM${data}.${FILETYPE}";
     local tempfile=$(mktemp -q) || die 1 "${SC_SCRIPTNAME} CANNOT create the startup file, please check the disk space";
     
     lpstat -p ${DM_PRINTER} > ${tempfile}
     
     RC=$(grep  "enabled" ${tempfile})
     
-    if  [ -z $RC ]; then
+    if [ -z "$RC" ]; then
+	printf "We cannot find the printer : %s\n" "${DM_PRINTER}";
+	printf "We are doing cupsenable that printer ...\n";
+	sudo cupsenable ${DM_PRINTER}
+	printf "One may try to do it again\n";
+	exit 1;
+    else
     	printf "Sending ${output_filename} to ${DM_PRINTER}\n";
 	lpr -P ${DM_PRINTER} -o MediaType=6mm -o PageSize=w18h252  -o orientation-requested=4 -o DymoCutOptions=Cut -o DymoContinuousPaper=0 -o DymoHalftoning=NLL -o print-quality=5 ${output_filename}
-    else
-	printf "We cannot find the printer : %s\n" "${DM_PRINTER}";
-	exit 1;
     fi
     
 }
@@ -114,19 +119,22 @@ function lpr_dmlabel
 function lpr_qrlabel
 {
     local data=$1; shift;
-    local output_filename="${data}.${FILETYPE}";
+    local output_filename="QR${data}.${FILETYPE}";
     local tempfile=$(mktemp -q) || die 1 "${SC_SCRIPTNAME} CANNOT create the startup file, please check the disk space";
     
     lpstat -p ${QR_PRINTER} > ${tempfile}
     
     RC=$(grep  "enabled" ${tempfile})
     
-    if  [ -z $RC ]; then
-    	printf "Sending ${output_filename} to ${QR_PRINTER}\n";
-	lpr -P ${QR_PRINTER} -o PageSize=w72h72.1 -o scaling=100 -o orientation-requested=3 -o DymoHalftoning=Default -o print-quality=5 ${output_filename}
-    else
+    if  [ -z "$RC" ]; then
 	printf "We cannot find the printer : %s\n" "${QR_PRINTER}";
+	printf "We are doing cupsenable that printer ...\n";
+	sudo cupsenable ${QR_PRINTER}
+	printf "One may try to do it again\n";
 	exit 1;
+    else
+    	printf "Sending ${output_filename} to ${QR_PRINTER}\n";
+	lpr -P ${QR_PRINTER} -o PageSize=w72h72.1 -o scaling=100 -o orientation-requested=3 -o DymoHalftoning=Default ${output_filename}
     fi
     
 }
